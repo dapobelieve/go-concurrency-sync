@@ -108,10 +108,11 @@ func main() {
 
 	histogram := make(map[string]int) //{"string": 0}
 
-	done := make(chan bool)
+	done := make(chan struct{})
 
 	//split and count words
 	go func() {
+		defer close(done) //run this after all the code in this function has executed
 		for _, line := range data {
 			words := strings.Split(line, " ")
 			for _, word := range words {
@@ -119,13 +120,12 @@ func main() {
 				histogram[word]++
 			}
 		}
-		done <- true
 	}()
 
-	if <-done {
-		for key, value := range histogram {
-			fmt.Printf("%s\t (%d)\n", key, value)
-		}
+	<-done
+
+	for key, value := range histogram {
+		fmt.Printf("%s\t (%d)\n", key, value)
 	}
 
 }
